@@ -6,6 +6,7 @@ import { Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import Addresses from './components/Addresses';
 
 // Helper: get auth token from localStorage
 function getToken() {
@@ -30,7 +31,10 @@ function App() {
         <Link to="/" className="text-decoration-none fw-bold">Student Auth Demo</Link>
         <div>
           {isLoggedIn ? (
-            <button className="btn btn-outline-danger btn-sm" onClick={handleLogout}>Logout</button>
+            <>
+              <Link to="/addresses" className="btn btn-outline-primary btn-sm me-2">Addresses</Link>
+              <button className="btn btn-outline-danger btn-sm" onClick={handleLogout}>Logout</button>
+            </>
           ) : (
             <>
               <Link to="/login" className="btn btn-primary btn-sm me-2">Login</Link>
@@ -48,6 +52,8 @@ function App() {
         <Route path="/register" element={<Register />} />
         {/* Protect dashboard by checking token; for demo, redirect if not logged in */}
         <Route path="/dashboard" element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />} />
+        {/* Protected Addresses page */}
+        <Route path="/addresses" element={isLoggedIn ? <Addresses /> : <Navigate to="/login" />} />
       </Routes>
     </div>
   );

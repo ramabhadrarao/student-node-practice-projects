@@ -39,6 +39,9 @@ app.get('/', (req, res) => {
 // Auth routes (register, login, me)
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
+// Address CRUD routes
+const addressRoutes = require('./routes/addresses');
+app.use('/api/addresses', addressRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
