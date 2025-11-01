@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Auth API - Curl & Postman</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: Inter, system-ui, Arial, sans-serif; margin: 24px; line-height: 1.6; }
+    h1 { margin-bottom: 0.25rem; }
+    .subtitle { color: #555; margin-top: 0; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin: 16px 0; }
+    pre { background: #f7f7f7; padding: 12px; border-radius: 6px; overflow: auto; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .tip { color: #0b7285; }
+    .warn { color: #c92a2a; }
+    .ok { color: #2b8a3e; }
+  </style>
+  <!-- Simple, static page students can copy-paste from into Postman or terminal. -->
+</head>
+<body>
+  <h1>Student Auth API</h1>
+  <p class="subtitle">Copy-paste these curl commands (or import into Postman). Backend runs on <code>http://localhost:5000</code>.</p>
+
+  <div class="card">
+    <h2>curl Basics: Flags Explained</h2>
+    <p>These are common curl options used in the examples below:</p>
+    <style>
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #ddd; padding: 8px; }
+      th { background: #f0f0f0; text-align: left; }
+    </style>
+    <table>
+      <thead>
+        <tr>
+          <th>Flag</th>
+          <th>Meaning</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>-i</code></td>
+          <td>Include HTTP response headers in the output.</td>
+          <td><code>curl -i http://localhost:5000/</code></td>
+        </tr>
+        <tr>
+          <td><code>-X</code></td>
+          <td>Specify the HTTP method (e.g., <code>POST</code>, <code>GET</code>, <code>PUT</code>).</td>
+          <td><code>curl -X POST http://localhost:5000/api/auth/login</code></td>
+        </tr>
+        <tr>
+          <td><code>-H</code></td>
+          <td>Add a request header (e.g., set <code>Content-Type</code> or <code>Authorization</code>).</td>
+          <td><code>curl -H "Content-Type: application/json" ...</code></td>
+        </tr>
+        <tr>
+          <td><code>-d</code></td>
+          <td>Send request body data (JSON in our examples). Using <code>-d</code> implies <code>POST</code> unless you also set <code>-X</code> explicitly.</td>
+          <td><code>curl -d '{"email":"a@b.com","password":"123"}' ...</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="tip">Tip: <code>-d</code> is the short form of <code>--data</code>. For JSON bodies, always include <code>-H "Content-Type: application/json"</code>.</p>
+  </div>
+
+  <div class="card">
+    <h2>Health Check</h2>
+    <p>Quickly test if the server is running.</p>
+    <pre><code>curl -i http://localhost:5000/</code></pre>
+  </div>
+
+  <div class="card">
+    <h2>Register</h2>
+    <p>Create a new user. Fields: <code>name</code>, <code>email</code>, <code>password</code>.</p>
+    <pre><code>curl -i \
+  -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Student One",
+    "email": "student1@example.com",
+    "password": "pass1234"
+  }'
+    </code></pre>
+    <p class="tip">Tip: Status <code>201</code> means success. If you see <code>409</code>, the email is already registered.</p>
+  </div>
+
+  <div class="card">
+    <h2>Login</h2>
+    <p>Login with email and password. Returns a JWT <code>token</code> and user info.</p>
+    <pre><code>curl -i \
+  -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "student1@example.com",
+    "password": "pass1234"
+  }'
+    </code></pre>
+    <p>Sample successful response:</p>
+    <pre><code>{
+  "message": "Login successful",
+  "token": "&lt;JWT_TOKEN&gt;",
+  "user": { "id": "...", "name": "Student One", "email": "student1@example.com" }
+}
+    </code></pre>
+    <p class="tip">Copy the <code>token</code> value. You will need it for the <strong>Me</strong> endpoint.</p>
+  </div>
+
+  <div class="card">
+    <h2>Me (Current User)</h2>
+    <p>Fetch the logged-in user. Requires the <code>Authorization: Bearer &lt;token&gt;</code> header.</p>
+    <pre><code># Replace &lt;JWT_TOKEN&gt; below with the token from Login
+curl -i \
+  http://localhost:5000/api/auth/me \
+  -H "Authorization: Bearer &lt;JWT_TOKEN&gt;"
+    </code></pre>
+    <p class="warn">If you get <code>401</code> (Unauthorized), your token is missing or invalid.</p>
+  </div>
+
+  <div class="card">
+    <h2>Postman Notes</h2>
+    <ul>
+      <li>Register: method <code>POST</code>, Body → <code>raw</code>, type <code>JSON</code>, paste the register JSON.</li>
+      <li>Login: method <code>POST</code>, Body → <code>raw</code>, type <code>JSON</code>, paste the login JSON; copy returned <code>token</code>.</li>
+      <li>Me: method <code>GET</code>, add Header <code>Authorization</code> with value <code>Bearer &lt;JWT_TOKEN&gt;</code>.</li>
+    </ul>
+    <p class="ok">That’s it! This backend is intentionally simple for learning.</p>
+  </div>
+
+  <div class="card">
+    <h2>Environment</h2>
+    <p>Default local setup:</p>
+    <pre><code>MONGO_URI=mongodb://localhost:27017/student-auth
+PORT=5000
+JWT_SECRET=supersecret123
+    </code></pre>
+    <p>Set these in <code>backend/.env</code> and restart the server if you change them.</p>
+  </div>
+
+  <div class="card">
+    <h2>HTTP Status Codes (Errors & Success)</h2>
+    <p>Quick meanings of common HTTP status codes you’ll encounter with this API.</p>
+    <style>
+      .codes-table { border-collapse: collapse; width: 100%; }
+      .codes-table th, .codes-table td { border: 1px solid #ddd; padding: 8px; }
+      .codes-table th { background: #f0f0f0; text-align: left; }
+      .codes-table td code { font-weight: 600; }
+    </style>
+    <table class="codes-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Name</th>
+          <th>Meaning</th>
+          <th>When you’ll see it here</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>200</code></td>
+          <td>OK</td>
+          <td>Request succeeded, response contains data.</td>
+          <td>Successful <code>login</code> and <code>me</code> requests.</td>
+        </tr>
+        <tr>
+          <td><code>201</code></td>
+          <td>Created</td>
+          <td>New resource created.</td>
+          <td>Successful <code>register</code> creates a user.</td>
+        </tr>
+        <tr>
+          <td><code>204</code></td>
+          <td>No Content</td>
+          <td>Request succeeded, no body returned.</td>
+          <td>Not used in this demo, but common for deletes.</td>
+        </tr>
+        <tr>
+          <td><code>400</code></td>
+          <td>Bad Request</td>
+          <td>Request is invalid or missing fields.</td>
+          <td>Missing <code>email</code>/<code>password</code> on login; missing fields on register.</td>
+        </tr>
+        <tr>
+          <td><code>401</code></td>
+          <td>Unauthorized</td>
+          <td>Missing or invalid authentication token.</td>
+          <td>Calling <code>me</code> without a valid <code>Bearer</code> token; wrong login password.</td>
+        </tr>
+        <tr>
+          <td><code>403</code></td>
+          <td>Forbidden</td>
+          <td>Authenticated, but not allowed to perform action.</td>
+          <td>Not used in this demo, but common for role-based access.</td>
+        </tr>
+        <tr>
+          <td><code>404</code></td>
+          <td>Not Found</td>
+          <td>Requested resource doesn’t exist.</td>
+          <td><code>me</code> if the user ID doesn’t exist anymore.</td>
+        </tr>
+        <tr>
+          <td><code>409</code></td>
+          <td>Conflict</td>
+          <td>Request conflicts with current state.</td>
+          <td><code>register</code> when <code>email</code> is already taken.</td>
+        </tr>
+        <tr>
+          <td><code>422</code></td>
+          <td>Unprocessable Entity</td>
+          <td>Semantically invalid data.</td>
+          <td>Not used here; typical for detailed validation errors.</td>
+        </tr>
+        <tr>
+          <td><code>429</code></td>
+          <td>Too Many Requests</td>
+          <td>Client is rate-limited.</td>
+          <td>Not used here; common when limiting login attempts.</td>
+        </tr>
+        <tr>
+          <td><code>500</code></td>
+          <td>Internal Server Error</td>
+          <td>Unexpected error on the server.</td>
+          <td>Any unhandled exception in the backend code.</td>
+        </tr>
+        <tr>
+          <td><code>503</code></td>
+          <td>Service Unavailable</td>
+          <td>Server is down or overloaded.</td>
+          <td>Database unavailable or server startup issues.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="tip">Tip: Check the status code first. <strong>2xx</strong> = success, <strong>4xx</strong> = client-side issue (fix your request), <strong>5xx</strong> = server-side issue.</p>
+  </div>
+
+  <p style="color:#666">Source: Express + Mongoose + JWT. For students: passwords are hashed with bcrypt, tokens signed with JWT.</p>
+</body>
+</html>
